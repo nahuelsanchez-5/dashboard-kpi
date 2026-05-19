@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard KPI 2026 - FINAL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 { font-size: 32px; color: #333; margin-bottom: 10px; }
+        .sync-info { color: #666; font-size: 14px; }
+        
+        .total-bonus {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+        
+        .total-bonus h2 { font-size: 24px; margin-bottom: 10px; }
+        .total-bonus .amount { font-size: 56px; font-weight: 700; }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .kpi-card.pagos::before { background: #34a853; }
+        .kpi-card.carteles::before { background: #fbbc04; }
+        .kpi-card.encuestas::before { background: #ea4335; }
+        .kpi-card.facturacion::before { background: #4285f4; }
+        
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .kpi-title { font-size: 18px; font-weight: 600; color: #333; }
+        .kpi-icon { font-size: 32px; }
+        .kpi-value { font-size: 48px; font-weight: 700; color: #333; margin-bottom: 10px; }
+        .kpi-label { font-size: 14px; color: #666; margin-bottom: 15px; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill { height: 100%; transition: width 0.3s ease; }
+        .progress-fill.green { background: #34a853; }
+        .progress-fill.yellow { background: #fbbc04; }
+        .progress-fill.red { background: #ea4335; }
+        .progress-fill.blue { background: #4285f4; }
+        
+        .bonus-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .bonus-badge.earned { background: #d9ead3; color: #34a853; }
+        .bonus-badge.not-earned { background: #f4cccc; color: #ea4335; }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-primary { background: #4285f4; color: white; }
+        .btn-success { background: #34a853; color: white; }
+        .btn-warning { background: #fbbc04; color: white; }
+        .btn-danger { background: #ea4335; color: white; }
+        .btn-secondary { background: #666; color: white; }
+        .btn-purple { background: #9c27b0; color: white; }
+        .btn-info { background: #00bcd4; color: white; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-header h2 { font-size: 24px; color: #333; }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        .copy-box {
+            background: #f8f9fa;
+            border: 2px dashed #4285f4;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .copy-btn:hover { background: #3367d6; }
+        
+        .instructions {
+            background: #e8f0fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1a73e8;
+        }
+        
+        .detail-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .detail-section h3 { font-size: 20px; margin-bottom: 20px; color: #333; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { font-weight: 600; color: #666; font-size: 14px; }
+        td { color: #333; }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pagado { background: #d9ead3; color: #34a853; }
+        .status-parcial { background: #fff2cc; color: #f9ab00; }
+        .status-pendiente { background: #f4cccc; color: #ea4335; }
+        
+        .loading { text-align: center; padding: 60px; color: #666; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            background: #d9ead3;
+            color: #34a853;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .gastos-list {
+            margin: 20px 0;
+        }
+
+        .gasto-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4285f4;
+        }
+
+        .gasto-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .gasto-item small {
+            color: #666;
+        }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .actions, .detail-section { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard KPI 2026</h1>
+            <div class="sync-info" id="syncInfo">Cargando...</div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Cargando datos...</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="total-bonus">
+                <h2>💰 Total Bonificaciones</h2>
+                <div class="amount" id="totalBonus">$0</div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card pagos">
+                    <div class="kpi-header">
+                        <span class="kpi-title">💰 Pagos Agentes</span>
+                        <span class="kpi-icon">💵</span>
+                    </div>
+                    <div class="kpi-value" id="pagosPorcentaje">0%</div>
+                    <div class="kpi-label">Objetivo: 100%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill green" id="pagosProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="bonus-badge" id="pagosBonus">$0</div>
+                </div>
+
+                <div class="kpi-card carteles">
+                    <div class="kpi-header">
+                        <span class="kpi-title">🪧 Recupero Carteles</span>
+                        <span class="kpi-icon">📍</span>
+                    </div>
+                    <div class="kpi-value" id="cartelesPorcentaje">0%</div>
+                    <div class="kpi-label">Objetivo: 95%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill yellow" id="cartelesProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="bonus-badge" id="cartelesBonus">$0</div>
+                </div>
+
+                <div class="kpi-card encuestas">
+                    <div class="kpi-header">
+                        <span class="kpi-title">📋 Encuestas</span>
+                        <span class="kpi-icon">✅</span>
+                    </div>
+                    <div class="kpi-value" id="encuestasPorcentaje">0%</div>
+                    <div class="kpi-label">Objetivo: 60%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill red" id="encuestasProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="bonus-badge" id="encuestasBonus">$0</div>
+                </div>
+
+                <div class="kpi-card facturacion">
+                    <div class="kpi-header">
+                        <span class="kpi-title">💵 Facturación</span>
+                        <span class="kpi-icon">📈</span>
+                    </div>
+                    <div class="kpi-value" id="facturacionPorcentaje">0%</div>
+                    <div class="kpi-label" id="facturacionLabel">Objetivo: $0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill blue" id="facturacionProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="bonus-badge" id="facturacionBonus">$0</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-purple" onclick="openModal('gastos')">⚡ Generar Gasto Recurrente</button>
+                <button class="btn btn-success" onclick="openModal('pago')">💰 Registrar Pago</button>
+                <button class="btn btn-warning" onclick="openModal('cartel')">🪧 Cargar Cartel</button>
+                <button class="btn btn-danger" onclick="openModal('cierre')">🏠 Registrar Cierre</button>
+                <button class="btn btn-info" onclick="openModal('encuesta')">📧 Registrar Encuesta</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir</button>
+                <button class="btn btn-success" onclick="reloadData()">🔄 Actualizar</button>
+                <button class="btn btn-warning" onclick="abrirGoogleSheets()">📊 Abrir Sheets</button>
+            </div>
+
+            <div class="detail-section">
+                <h3>🏠 Últimos Cierres</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Dirección</th>
+                            <th>Vendedor</th>
+                            <th>Comprador</th>
+                            <th>Tipo</th>
+                            <th>Comisión</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cierresBody">
+                        <tr><td colspan="6" style="text-align: center; color: #999;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="detail-section">
+                <h3>💰 Pagos Pendientes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agente</th>
+                            <th>Concepto</th>
+                            <th>Monto Debe</th>
+                            <th>Monto Pagado</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pagosBody">
+                        <tr><td colspan="5" style="text-align: center; color: #999;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GENERAR GASTOS -->
+    <div id="modalGastos" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚡ Generar Gasto Recurrente</h2>
+                <button class="close-modal" onclick="closeModal('gastos')">&times;</button>
+            </div>
+            <div class="instructions">
+                💡 Genera automáticamente gastos para agentes con +6 meses de antigüedad y que pagan.
+            </div>
+            <form id="formGastos" onsubmit="generateGastos(event)">
+                <div class="form-group">
+                    <label>Tipo de Gasto *</label>
+                    <select id="gastoTipo" required onchange="updateGastoInfo()">
+                        <option value="">Seleccionar...</option>
+                        <option value="fee">Fee Mensual ($65)</option>
+                        <option value="crm">CRM (Pro $8.5 / Pro+ $30.5)</option>
+                        <option value="mainstreet">Mainstreet ($350.9)</option>
+                    </select>
+                </div>
+                <div id="gastoInfo" style="display: none; margin: 20px 0;">
+                    <div class="gasto-item">
+                        <strong id="gastoInfoTitle"></strong>
+                        <small id="gastoInfoDetail"></small>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-purple">📋 Generar</button>
+                </div>
+            </form>
+            <div id="gastosResult" style="display: none;">
+                <div class="success-message" id="gastosSuccessMsg"></div>
+                <div class="copy-box" id="gastosText">
+                    <button class="copy-btn" onclick="copyText('gastosText')">📋 Copiar</button>
+                    <span id="gastosContent"></span>
+                </div>
+                <button class="btn btn-warning" onclick="abrirGoogleSheets()">📊 Abrir Sheets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR PAGO -->
+    <div id="modalPago" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Registrar Pago</h2>
+                <button class="close-modal" onclick="closeModal('pago')">&times;</button>
+            </div>
+            <div class="instructions">
+                💡 Completá el formulario y copiá el texto generado para pegar en PAGOS.
+            </div>
+            <form id="formPago" onsubmit="generatePago(event)">
+                <div class="form-group">
+                    <label>Agente *</label>
+                    <select id="pagoAgente" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Concepto *</label>
+                    <select id="pagoConcepto" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Fee">Fee</option>
+                        <option value="CRM">CRM</option>
+                        <option value="Mainstreet">Mainstreet</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monto Pagado (USD) *</label>
+                    <input type="number" id="pagoMontoPagado" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="pagoFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Nota</label>
+                    <textarea id="pagoNota" placeholder="Ej: Pago de Fee de Abril 2026"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">💾 Generar</button>
+                </div>
+            </form>
+            <div id="pagoResult" style="display: none;">
+                <div class="success-message">✅ Copiá y pegá en PAGOS:</div>
+                <div class="copy-box" id="pagoText">
+                    <button class="copy-btn" onclick="copyText('pagoText')">📋 Copiar</button>
+                    <span id="pagoContent"></span>
+                </div>
+                <button class="btn btn-warning" onclick="abrirGoogleSheets()">📊 Abrir Sheets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CARGAR CARTEL -->
+    <div id="modalCartel" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🪧 Cargar Cartel</h2>
+                <button class="close-modal" onclick="closeModal('cartel')">&times;</button>
+            </div>
+            <div class="instructions">
+                💡 Registrá el cartel recuperado para pegar en CARTELES_DETALLE.
+            </div>
+            <form id="formCartel" onsubmit="generateCartel(event)">
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="cartelFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Nº Cartel *</label>
+                    <input type="text" id="cartelNumero" placeholder="#245" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección *</label>
+                    <input type="text" id="cartelDireccion" placeholder="Av. Sarmiento 123" required>
+                </div>
+                <div class="form-group">
+                    <label>Agente *</label>
+                    <select id="cartelAgente" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Nota</label>
+                    <textarea id="cartelNota" placeholder="Recuperado por vencimiento"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-warning">💾 Generar</button>
+                </div>
+            </form>
+            <div id="cartelResult" style="display: none;">
+                <div class="success-message">✅ Copiá y pegá en CARTELES_DETALLE:</div>
+                <div class="copy-box" id="cartelText">
+                    <button class="copy-btn" onclick="copyText('cartelText')">📋 Copiar</button>
+                    <span id="cartelContent"></span>
+                </div>
+                <button class="btn btn-warning" onclick="abrirGoogleSheets()">📊 Abrir Sheets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR CIERRE -->
+    <div id="modalCierre" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏠 Registrar Cierre</h2>
+                <button class="close-modal" onclick="closeModal('cierre')">&times;</button>
+            </div>
+            <div class="instructions">
+                💡 Registrá la operación inmobiliaria para pegar en ENCUESTAS Y CIERRES (columnas A-H).
+            </div>
+            <form id="formCierre" onsubmit="generateCierre(event)">
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="cierreFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección *</label>
+                    <input type="text" id="cierreDireccion" placeholder="Av. Sarmiento 123" required>
+                </div>
+                <div class="form-group">
+                    <label>Agente Vendedor *</label>
+                    <select id="cierreVendedor" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Agente Comprador *</label>
+                    <select id="cierreComprador" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select id="cierreTipo" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Venta">Venta</option>
+                        <option value="Alquiler">Alquiler</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Comisión Bruta (USD) *</label>
+                    <input type="number" id="cierreComision" step="0.01" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-danger">💾 Generar</button>
+                </div>
+            </form>
+            <div id="cierreResult" style="display: none;">
+                <div class="success-message">✅ Copiá y pegá en ENCUESTAS Y CIERRES (columnas A-H):</div>
+                <div class="copy-box" id="cierreText">
+                    <button class="copy-btn" onclick="copyText('cierreText')">📋 Copiar</button>
+                    <span id="cierreContent"></span>
+                </div>
+                <button class="btn btn-warning" onclick="abrirGoogleSheets()">📊 Abrir Sheets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR ENCUESTA -->
+    <div id="modalEncuesta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📧 Registrar Encuesta</h2>
+                <button class="close-modal" onclick="closeModal('encuesta')">&times;</button>
+            </div>
+            <div class="instructions">
+                💡 Registrá la encuesta para pegar en ENCUESTAS Y CIERRES (columnas K-P).
+            </div>
+            <form id="formEncuesta" onsubmit="generateEncuesta(event)">
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="encuestaFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select id="encuestaTipo" required onchange="toggleEncuestaFields()">
+                        <option value="">Seleccionar...</option>
+                        <option value="Espontánea">Espontánea</option>
+                        <option value="Mailing">Mailing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Agente *</label>
+                    <select id="encuestaAgente" required></select>
+                </div>
+                <div class="form-group" id="encuestaDireccionGroup" style="display: none;">
+                    <label>Dirección *</label>
+                    <input type="text" id="encuestaDireccion" placeholder="Av. Sarmiento 123">
+                </div>
+                <div class="form-group" id="encuestaClienteGroup" style="display: none;">
+                    <label>Cliente *</label>
+                    <select id="encuestaCliente">
+                        <option value="">Seleccionar...</option>
+                        <option value="Comprador">Comprador</option>
+                        <option value="Vendedor">Vendedor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>NPS (0-10) *</label>
+                    <input type="number" id="encuestaNPS" min="0" max="10" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-info">💾 Generar</button>
+                </div>
+            </form>
+            <div id="encuestaResult" style="display: none;">
+                <div class="success-message">✅ Copiá y pegá en ENCUESTAS Y CIERRES (columnas K-P):</div>
+                <div class="copy-box" id="encuestaText">
+                    <button class="copy-btn" onclick="copyText('encuestaText')">📋 Copiar</button>
+                    <span id="encuestaContent"></span>
+                </div>
+                <button class="btn btn-warning" onclick="abrirGoogleSheets()">📊 Abrir Sheets</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            SHEET_ID: '1ZTBO34isQpgETV7nEdMRR0mhA05SPQ3XC4rLA1KdjE0',
+            API_KEY: 'AIzaSyCValFpNPsKlTRJJwJHXCbDboq4kQWCRt8'
+        };
+
+        let globalData = {};
+
+        async function loadData() {
+            try {
+                showLoading(true);
+                
+                const ranges = 'AGENTES!A:G&ranges=PAGOS!A:G&ranges=CARTELES!A:D&ranges=ENCUESTAS Y CIERRES!A:P&ranges=FACTURACION!A:F&ranges=CONFIG!A:B';
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values:batchGet?ranges=${ranges}&key=${CONFIG.API_KEY}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                
+                const data = await response.json();
+                
+                globalData = {
+                    agentes: parseSheetData(data.valueRanges[0].values),
+                    pagos: parseSheetData(data.valueRanges[1].values),
+                    carteles: parseSheetData(data.valueRanges[2].values),
+                    encuestasYCierres: parseSheetData(data.valueRanges[3].values),
+                    facturacion: parseSheetData(data.valueRanges[4].values),
+                    config: parseConfigData(data.valueRanges[5].values)
+                };
+                
+                calculateKPIs();
+                renderDashboard();
+                populateDropdowns();
+                showLoading(false);
+                updateSyncInfo();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cargar datos: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        function parseSheetData(data) {
+            if (!data || data.length < 2) return [];
+            const headers = data[0];
+            return data.slice(1).map(row => {
+                const obj = {};
+                headers.forEach((header, i) => {
+                    obj[header] = row[i] || '';
+                });
+                return obj;
+            });
+        }
+
+        function parseConfigData(data) {
+            const config = {};
+            if (data && data.length > 1) {
+                data.slice(1).forEach(row => {
+                    config[row[0]] = parseFloat(row[1]) || 0;
+                });
+            }
+            return config;
+        }
+
+        function calculateKPIs() {
+            const mesActual = new Date().toISOString().slice(0, 7);
+            
+            // PAGOS
+            const pagosMes = globalData.pagos.filter(p => 
+                p.Fecha && p.Fecha.startsWith(mesActual.replace('-', '/'))
+            );
+            const totalDebe = pagosMes.reduce((sum, p) => sum + (parseFloat(p['Monto Debe']) || 0), 0);
+            const totalPagado = pagosMes.reduce((sum, p) => sum + (parseFloat(p['Monto Pagado']) || 0), 0);
+            const pagosPorcentaje = totalDebe > 0 ? (totalPagado / totalDebe * 100) : 0;
+            
+            // CARTELES
+            const cartelMesActual = globalData.carteles.find(c => c.Mes === mesActual);
+            const cartelesPorcentaje = cartelMesActual ? 
+                (parseFloat(cartelMesActual.Recuperados) / parseFloat(cartelMesActual['Total a Recuperar']) * 100) : 0;
+            
+            // ENCUESTAS (nueva lógica)
+            const cierres = globalData.encuestasYCierres.filter(e => e.Fecha && e.Dirección);
+            const checksVendedor = cierres.filter(e => e['Check Vendedor'] === 'TRUE' || e['Check Vendedor'] === 'VERDADERO').length;
+            const checksComprador = cierres.filter(e => e['Check Comprador'] === 'TRUE' || e['Check Comprador'] === 'VERDADERO').length;
+            const encuestasMailing = globalData.encuestasYCierres.filter(e => e.Tipo === 'Mailing').length;
+            
+            const totalEsperadas = cierres.length * 2;
+            const totalRespondidas = checksVendedor + checksComprador + encuestasMailing;
+            const encuestasPorcentaje = totalEsperadas > 0 ? (totalRespondidas / totalEsperadas * 100) : 0;
+            
+            // FACTURACIÓN
+            const mesNumero = parseInt(mesActual.split('-')[1]);
+            const facturacionMes = globalData.facturacion[mesNumero - 1];
+            const objetivo = facturacionMes ? parseFloat(facturacionMes['OBJETIVO USD']) || 0 : 0;
+            const real = facturacionMes ? parseFloat(facturacionMes.REAL) || 0 : 0;
+            const facturacionPorcentaje = objetivo > 0 ? (real / objetivo * 100) : 0;
+            
+            const objetivos = {
+                pagos: globalData.config['Objetivo Pagos (%)'] || 100,
+                carteles: globalData.config['Objetivo Carteles (%)'] || 95,
+                encuestas: globalData.config['Objetivo Encuestas (%)'] || 60
+            };
+            
+            const bonos = {
+                pagos: globalData.config['Bono Pagos (USD)'] || 100,
+                carteles: globalData.config['Bono Carteles (USD)'] || 100,
+                encuestas: globalData.config['Bono Encuestas (USD)'] || 100,
+                facturacion: globalData.config['Bono Facturación (USD)'] || 100
+            };
+            
+            globalData.kpis = {
+                pagos: {
+                    porcentaje: pagosPorcentaje,
+                    objetivo: objetivos.pagos,
+                    bono: pagosPorcentaje >= objetivos.pagos ? bonos.pagos : 0
+                },
+                carteles: {
+                    porcentaje: cartelesPorcentaje,
+                    objetivo: objetivos.carteles,
+                    bono: cartelesPorcentaje >= objetivos.carteles ? bonos.carteles : 0
+                },
+                encuestas: {
+                    porcentaje: encuestasPorcentaje,
+                    objetivo: objetivos.encuestas,
+                    bono: encuestasPorcentaje >= objetivos.encuestas ? bonos.encuestas : 0
+                },
+                facturacion: {
+                    porcentaje: facturacionPorcentaje,
+                    objetivo: objetivo,
+                    real: real,
+                    bono: facturacionPorcentaje >= 100 ? bonos.facturacion : 0
+                }
+            };
+        }
+
+        function renderDashboard() {
+            const kpis = globalData.kpis;
+            
+            const totalBonos = kpis.pagos.bono + kpis.carteles.bono + kpis.encuestas.bono + kpis.facturacion.bono;
+            document.getElementById('totalBonus').textContent = `$${totalBonos}`;
+            
+            document.getElementById('pagosPorcentaje').textContent = `${kpis.pagos.porcentaje.toFixed(1)}%`;
+            document.getElementById('pagosProgress').style.width = `${Math.min(kpis.pagos.porcentaje, 100)}%`;
+            const pagosBonus = document.getElementById('pagosBonus');
+            pagosBonus.textContent = kpis.pagos.bono > 0 ? `✅ $${kpis.pagos.bono}` : `⚠️ $0`;
+            pagosBonus.className = `bonus-badge ${kpis.pagos.bono > 0 ? 'earned' : 'not-earned'}`;
+            
+            document.getElementById('cartelesPorcentaje').textContent = `${kpis.carteles.porcentaje.toFixed(1)}%`;
+            document.getElementById('cartelesProgress').style.width = `${Math.min(kpis.carteles.porcentaje, 100)}%`;
+            const cartelesBonus = document.getElementById('cartelesBonus');
+            cartelesBonus.textContent = kpis.carteles.bono > 0 ? `✅ $${kpis.carteles.bono}` : `⚠️ $0`;
+            cartelesBonus.className = `bonus-badge ${kpis.carteles.bono > 0 ? 'earned' : 'not-earned'}`;
+            
+            document.getElementById('encuestasPorcentaje').textContent = `${kpis.encuestas.porcentaje.toFixed(1)}%`;
+            document.getElementById('encuestasProgress').style.width = `${Math.min(kpis.encuestas.porcentaje, 100)}%`;
+            const encuestasBonus = document.getElementById('encuestasBonus');
+            encuestasBonus.textContent = kpis.encuestas.bono > 0 ? `✅ $${kpis.encuestas.bono}` : `⚠️ $0`;
+            encuestasBonus.className = `bonus-badge ${kpis.encuestas.bono > 0 ? 'earned' : 'not-earned'}`;
+            
+            document.getElementById('facturacionPorcentaje').textContent = `${kpis.facturacion.porcentaje.toFixed(1)}%`;
+            document.getElementById('facturacionLabel').textContent = `Objetivo: $${kpis.facturacion.objetivo.toLocaleString()}`;
+            document.getElementById('facturacionProgress').style.width = `${Math.min(kpis.facturacion.porcentaje, 100)}%`;
+            const facturacionBonus = document.getElementById('facturacionBonus');
+            facturacionBonus.textContent = kpis.facturacion.bono > 0 ? `✅ $${kpis.facturacion.bono}` : `⚠️ $0`;
+            facturacionBonus.className = `bonus-badge ${kpis.facturacion.bono > 0 ? 'earned' : 'not-earned'}`;
+            
+            renderCierres();
+            renderPagosPendientes();
+        }
+
+        function renderCierres() {
+            const tbody = document.getElementById('cierresBody');
+            const cierres = globalData.encuestasYCierres.filter(e => e.Fecha && e.Dirección).slice(0, 5);
+            
+            if (cierres.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No hay cierres</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = cierres.map(c => `
+                <tr>
+                    <td>${c.Fecha || '-'}</td>
+                    <td>${c['Dirección'] || '-'}</td>
+                    <td>${c.Vendedor || '-'}</td>
+                    <td>${c.Comprador || '-'}</td>
+                    <td>${c.Tipo || '-'}</td>
+                    <td>$${parseFloat(c['Comisión'] || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPagosPendientes() {
+            const tbody = document.getElementById('pagosBody');
+            const pendientes = globalData.pagos.filter(p => 
+                p.Estado === 'Pendiente' || p.Estado === 'Parcial'
+            );
+            
+            if (pendientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">✅ No hay pagos pendientes</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = pendientes.map(p => `
+                <tr>
+                    <td>${p.Agente || '-'}</td>
+                    <td>${p.Concepto || '-'}</td>
+                    <td>$${parseFloat(p['Monto Debe'] || 0).toFixed(2)}</td>
+                    <td>$${parseFloat(p['Monto Pagado'] || 0).toFixed(2)}</td>
+                    <td><span class="status-badge status-${p.Estado.toLowerCase()}">${p.Estado}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal(type) {
+            const modals = {
+                'gastos': { id: 'modalGastos', init: () => {} },
+                'pago': { id: 'modalPago', init: () => document.getElementById('pagoFecha').valueAsDate = new Date() },
+                'cartel': { id: 'modalCartel', init: () => document.getElementById('cartelFecha').valueAsDate = new Date() },
+                'cierre': { id: 'modalCierre', init: () => document.getElementById('cierreFecha').valueAsDate = new Date() },
+                'encuesta': { id: 'modalEncuesta', init: () => {
+                    document.getElementById('encuestaFecha').valueAsDate = new Date();
+                    document.getElementById('encuestaDireccionGroup').style.display = 'none';
+                    document.getElementById('encuestaClienteGroup').style.display = 'none';
+                }}
+            };
+            
+            const modal = modals[type];
+            if (modal) {
+                modal.init();
+                document.getElementById(modal.id).classList.add('active');
+                if (type !== 'gastos') {
+                    document.getElementById(`${type}Result`).style.display = 'none';
+                }
+            }
+        }
+
+        function closeModal(type) {
+            const modalIds = {
+                'gastos': 'modalGastos',
+                'pago': 'modalPago',
+                'cartel': 'modalCartel',
+                'cierre': 'modalCierre',
+                'encuesta': 'modalEncuesta'
+            };
+            
+            const modalId = modalIds[type];
+            if (modalId) {
+                document.getElementById(modalId).classList.remove('active');
+                const formId = `form${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                const form = document.getElementById(formId);
+                if (form) form.reset();
+            }
+        }
+
+        function populateDropdowns() {
+            const agentesActivos = globalData.agentes.filter(a => a.Estado === 'Activo');
+            
+            const dropdowns = [
+                'pagoAgente', 'cartelAgente', 'cierreVendedor', 
+                'cierreComprador', 'encuestaAgente'
+            ];
+            
+            dropdowns.forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seleccionar...</option>';
+                agentesActivos.forEach(a => {
+                    const option = document.createElement('option');
+                    option.value = a.Nombre;
+                    option.textContent = a.Nombre;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function toggleEncuestaFields() {
+            const tipo = document.getElementById('encuestaTipo').value;
+            const dirGroup = document.getElementById('encuestaDireccionGroup');
+            const clienteGroup = document.getElementById('encuestaClienteGroup');
+            const dirInput = document.getElementById('encuestaDireccion');
+            const clienteInput = document.getElementById('encuestaCliente');
+            
+            if (tipo === 'Espontánea') {
+                dirGroup.style.display = 'block';
+                clienteGroup.style.display = 'block';
+                dirInput.required = true;
+                clienteInput.required = true;
+            } else {
+                dirGroup.style.display = 'none';
+                clienteGroup.style.display = 'none';
+                dirInput.required = false;
+                clienteInput.required = false;
+                dirInput.value = '';
+                clienteInput.value = '';
+            }
+        }
+
+        function updateGastoInfo() {
+            const tipo = document.getElementById('gastoTipo').value;
+            const infoDiv = document.getElementById('gastoInfo');
+            const titleEl = document.getElementById('gastoInfoTitle');
+            const detailEl = document.getElementById('gastoInfoDetail');
+            
+            if (!tipo) {
+                infoDiv.style.display = 'none';
+                return;
+            }
+            
+            const agentesQueQualifican = globalData.agentes.filter(a => {
+                if (a.Estado !== 'Activo') return false;
+                if (a.Paga !== 'SI') return false;
+                
+                if (!a['Fecha Alta']) return false;
+                
+                const fechaAlta = new Date(a['Fecha Alta']);
+                const hoy = new Date();
+                const meses = (hoy - fechaAlta) / (1000 * 60 * 60 * 24 * 30);
+                
+                if (tipo === 'mainstreet') return true;
+                return meses >= 6;
+            });
+            
+            if (tipo === 'fee') {
+                titleEl.textContent = `Fee Mensual ($65 por agente)`;
+                detailEl.textContent = `Se generarán ${agentesQueQualifican.length} registros de Fee`;
+            } else if (tipo === 'crm') {
+                const cantPro = agentesQueQualifican.filter(a => a['CRM Tipo'] === 'PRO').length;
+                const cantProPlus = agentesQueQualifican.filter(a => a['CRM Tipo'] === 'PRO+').length;
+                titleEl.textContent = `CRM Licencias`;
+                detailEl.textContent = `${cantPro} Pro ($8.5) + ${cantProPlus} Pro+ ($30.5)`;
+            } else if (tipo === 'mainstreet') {
+                titleEl.textContent = `Mainstreet Anual ($350.9)`;
+                detailEl.textContent = `Se generarán ${agentesQueQualifican.length} registros`;
+            }
+            
+            infoDiv.style.display = 'block';
+        }
+
+        function generateGastos(e) {
+            e.preventDefault();
+            
+            const tipo = document.getElementById('gastoTipo').value;
+            const fecha = new Date().toLocaleDateString('es-AR');
+            
+            const agentesQueQualifican = globalData.agentes.filter(a => {
+                if (a.Estado !== 'Activo') return false;
+                if (a.Paga !== 'SI') return false;
+                
+                if (!a['Fecha Alta']) return false;
+                
+                const fechaAlta = new Date(a['Fecha Alta']);
+                const hoy = new Date();
+                const meses = (hoy - fechaAlta) / (1000 * 60 * 60 * 24 * 30);
+                
+                if (tipo === 'mainstreet') return true;
+                return meses >= 6;
+            });
+            
+            let lineas = [];
+            
+            if (tipo === 'fee') {
+                agentesQueQualifican.forEach(a => {
+                    lineas.push(`${fecha}\t${a.Nombre}\tFee\t65\t0\tPendiente\tGenerado automáticamente`);
+                });
+            } else if (tipo === 'crm') {
+                agentesQueQualifican.forEach(a => {
+                    const monto = a['CRM Tipo'] === 'PRO+' ? 30.5 : 8.5;
+                    lineas.push(`${fecha}\t${a.Nombre}\tCRM\t${monto}\t0\tPendiente\tGenerado automáticamente`);
+                });
+            } else if (tipo === 'mainstreet') {
+                agentesQueQualifican.forEach(a => {
+                    lineas.push(`${fecha}\t${a.Nombre}\tMainstreet\t350.9\t0\tPendiente\tPago anual`);
+                });
+            }
+            
+            document.getElementById('gastosContent').textContent = lineas.join('\n');
+            document.getElementById('gastosSuccessMsg').textContent = `✅ ${lineas.length} registros generados:`;
+            document.getElementById('gastosResult').style.display = 'block';
+        }
+
+        function generatePago(e) {
+            e.preventDefault();
+            
+            const fecha = new Date(document.getElementById('pagoFecha').value + 'T00:00:00').toLocaleDateString('es-AR');
+            const agente = document.getElementById('pagoAgente').value;
+            const concepto = document.getElementById('pagoConcepto').value;
+            const pagado = document.getElementById('pagoMontoPagado').value;
+            const nota = document.getElementById('pagoNota').value;
+            
+            let debe = pagado;
+            if (concepto === 'Fee') debe = 65;
+            else if (concepto === 'CRM') {
+                const agenteData = globalData.agentes.find(a => a.Nombre === agente);
+                debe = agenteData && agenteData['CRM Tipo'] === 'PRO+' ? 30.5 : 8.5;
+            } else if (concepto === 'Mainstreet') debe = 350.9;
+            
+            const estado = parseFloat(pagado) >= parseFloat(debe) ? 'Pagado' : 
+                          parseFloat(pagado) > 0 ? 'Parcial' : 'Pendiente';
+            
+            const text = `${fecha}\t${agente}\t${concepto}\t${debe}\t${pagado}\t${estado}\t${nota}`;
+            
+            document.getElementById('pagoContent').textContent = text;
+            document.getElementById('pagoResult').style.display = 'block';
+        }
+
+        function generateCartel(e) {
+            e.preventDefault();
+            
+            const fecha = new Date(document.getElementById('cartelFecha').value + 'T00:00:00').toLocaleDateString('es-AR');
+            const numero = document.getElementById('cartelNumero').value;
+            const direccion = document.getElementById('cartelDireccion').value;
+            const agente = document.getElementById('cartelAgente').value;
+            const nota = document.getElementById('cartelNota').value;
+            
+            const text = `${fecha}\t${numero}\t${direccion}\t${agente}\t${nota}`;
+            
+            document.getElementById('cartelContent').textContent = text;
+            document.getElementById('cartelResult').style.display = 'block';
+        }
+
+        function generateCierre(e) {
+            e.preventDefault();
+            
+            const fecha = new Date(document.getElementById('cierreFecha').value + 'T00:00:00').toLocaleDateString('es-AR');
+            const direccion = document.getElementById('cierreDireccion').value;
+            const vendedor = document.getElementById('cierreVendedor').value;
+            const comprador = document.getElementById('cierreComprador').value;
+            const tipo = document.getElementById('cierreTipo').value;
+            const comision = document.getElementById('cierreComision').value;
+            
+            const text = `${fecha}\t${direccion}\t${vendedor}\t${comprador}\t${tipo}\t${comision}\tFALSE\tFALSE`;
+            
+            document.getElementById('cierreContent').textContent = text;
+            document.getElementById('cierreResult').style.display = 'block';
+        }
+
+        function generateEncuesta(e) {
+            e.preventDefault();
+            
+            const fecha = new Date(document.getElementById('encuestaFecha').value + 'T00:00:00').toLocaleDateString('es-AR');
+            const tipo = document.getElementById('encuestaTipo').value;
+            const agente = document.getElementById('encuestaAgente').value;
+            const direccion = document.getElementById('encuestaDireccion').value || '-';
+            const cliente = document.getElementById('encuestaCliente').value || '-';
+            const nps = document.getElementById('encuestaNPS').value;
+            
+            const text = `${fecha}\t${tipo}\t${agente}\t${direccion}\t${cliente}\t${nps}`;
+            
+            document.getElementById('encuestaContent').textContent = text;
+            document.getElementById('encuestaResult').style.display = 'block';
+        }
+
+        function copyText(elementId) {
+            const element = document.getElementById(elementId);
+            const contentElement = element.querySelector('span');
+            const text = contentElement ? contentElement.textContent.trim() : element.textContent.trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Texto copiado');
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('dashboard').style.display = show ? 'none' : 'block';
+        }
+
+        function updateSyncInfo() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('syncInfo').textContent = `Última actualización: ${timeStr}`;
+        }
+
+        function reloadData() {
+            loadData();
+        }
+
+        function abrirGoogleSheets() {
+            window.open(`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/edit`, '_blank');
+        }
+
+        window.onload = () => {
+            loadData();
+        };
+    </script>
+</body>
+</html>
